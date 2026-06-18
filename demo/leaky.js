@@ -1,1 +1,1 @@
-console.log("DEBUG_TOKEN=" + process.env.DEBUG_TOKEN);
+var unused = 42; console.log("DEBUG_TOKEN=" + process.env.SECRET_KEY);
