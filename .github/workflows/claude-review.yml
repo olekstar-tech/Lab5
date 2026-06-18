@@ -24,7 +24,9 @@ jobs:
         run: |
           claude -p --output-format json \
             --json-schema "$(cat .claude/review-schema.json)" \
-            < diff.txt > findings.json
+            < diff.txt \
+            | sed 's/\x1b\[[0-9;?]*[A-Za-z]//g' \
+            > findings.json
       - name: Show findings (debug)
         run: cat findings.json
       - name: Post findings as inline comments
