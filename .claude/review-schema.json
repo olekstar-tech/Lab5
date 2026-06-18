@@ -1,0 +1,21 @@
+{
+  "type": "object",
+  "properties": {
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "file":       { "type": "string" },
+          "line":       { "type": "integer", "minimum": 1 },
+          "severity":   { "type": "string", "enum": ["blocker", "warning", "nit"] },
+          "category":   { "type": "string" },
+          "message":    { "type": "string" },
+          "suggestion": { "type": ["string", "null"] }
+        },
+        "required": ["file", "line", "severity", "category", "message"]
+      }
+    }
+  },
+  "required": ["findings"]
+}
