@@ -1,0 +1,29 @@
+name: Claude Review
+on:
+  pull_request:
+    types: [opened, synchronize]
+permissions:
+  pull-requests: write
+  contents: read
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Compute diff against base
+        run: |
+          git diff origin/${{ github.base_ref }}...HEAD > diff.txt
+          wc -l diff.txt
+      - name: Install Claude Code
+        run: npm i -g @anthropic-ai/claude-code
+      - name: Run Claude in headless mode
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          claude -p --output-format json \
+            --json-schema .claude/review-schema.json \
+            < diff.txt > findings.json
+      - name: Show findings (debug)
+        run: cat findings.json
