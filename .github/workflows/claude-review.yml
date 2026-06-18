@@ -50,7 +50,8 @@ jobs:
               --method POST \
               -f commit_id="$COMMIT_SHA" \
               -f path="$FILE" \
-              -f line="$LINE" \
+              -F line="$LINE" \
               -f side=RIGHT \
+              -f subject_type=line \
               -f body="$BODY"
           done
