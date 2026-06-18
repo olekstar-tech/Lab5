@@ -52,6 +52,5 @@ jobs:
               -f path="$FILE" \
               -F line="$LINE" \
               -f side=RIGHT \
-              -f subject_type=line \
               -f body="$BODY"
           done
