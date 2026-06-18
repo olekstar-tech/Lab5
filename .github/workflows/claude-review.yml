@@ -22,7 +22,7 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTROPIC_PRIVAT }}
         run: |
-          claude -p --model claude-opus-4-7 --output-format json \
+          claude -p --model claude-haiku-4-5 --output-format json \
             --json-schema "$(cat .claude/review-schema.json)" \
             < diff.txt \
             | sed 's/\x1b\[[0-9;?]*[A-Za-z]//g' \
@@ -50,7 +50,8 @@ jobs:
               --method POST \
               -f commit_id="$COMMIT_SHA" \
               -f path="$FILE" \
-              -f line="$LINE" \
+              -F line="$LINE" \
               -f side=RIGHT \
+              -f subject_type=line \
               -f body="$BODY"
           done
