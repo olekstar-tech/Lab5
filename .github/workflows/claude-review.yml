@@ -29,28 +29,22 @@ jobs:
             > findings.json
       - name: Show findings (debug)
         run: cat findings.json
-      - name: Post findings as inline comments
+      - name: Post findings as BULK comment (baseline comparison)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          COMMIT_SHA=$(git rev-parse HEAD)
-          jq -rsc 'last | .structured_output.findings[]' findings.json | while read finding; do
+          BULK="## Claude Review Findings"$'\n\n'
+          while IFS= read -r finding; do
             FILE=$(echo "$finding" | jq -r .file)
             LINE=$(echo "$finding" | jq -r .line)
             SEV=$(echo "$finding" | jq -r .severity)
             CAT=$(echo "$finding" | jq -r .category)
             MSG=$(echo "$finding" | jq -r .message)
             SUG=$(echo "$finding" | jq -r '.suggestion // ""')
-            BODY="**$SEV** ($CAT): $MSG"
+            BULK="$BULK- **$SEV** ($CAT) — \`$FILE\` line $LINE: $MSG"
             if [ -n "$SUG" ]; then
-              BODY="$BODY"$'\n\n'"_Suggestion:_ $SUG"
+              BULK="$BULK — _Suggestion:_ $SUG"
             fi
-            gh api \
-              repos/${{ github.repository }}/pulls/${{ github.event.number }}/comments \
-              --method POST \
-              -f commit_id="$COMMIT_SHA" \
-              -f path="$FILE" \
-              -F line="$LINE" \
-              -f side=RIGHT \
-              -f body="$BODY"
-          done
+            BULK="$BULK"$'\n'
+          done < <(jq -rsc 'last | .structured_output.findings[]' findings.json)
+          gh pr comment ${{ github.event.number }} --body "$BULK"
