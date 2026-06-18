@@ -29,6 +29,16 @@ jobs:
             > findings.json
       - name: Show findings (debug)
         run: cat findings.json
+      - name: Fetch existing review comments
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api \
+            repos/${{ github.repository }}/pulls/${{ github.event.number }}/comments \
+            --paginate \
+            --jq '[.[] | {path: .path, line: .line, body: .body}]' \
+            > existing.json
+          echo "Existing comments: $(jq length existing.json)"
       - name: Post findings as inline comments
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -44,6 +54,14 @@ jobs:
             BODY="**$SEV** ($CAT): $MSG"
             if [ -n "$SUG" ]; then
               BODY="$BODY"$'\n\n'"_Suggestion:_ $SUG"
+            fi
+            KEY_BODY=$(echo "$BODY" | head -c 80)
+            DUP=$(jq --arg p "$FILE" --arg l "$LINE" --arg b "$KEY_BODY" \
+              '[.[] | select(.path == $p and (.line|tostring) == $l and (.body|.[0:80]) == $b)] | length' \
+              existing.json)
+            if [ "$DUP" -gt 0 ]; then
+              echo "skip duplicate: $FILE:$LINE"
+              continue
             fi
             gh api \
               repos/${{ github.repository }}/pulls/${{ github.event.number }}/comments \
