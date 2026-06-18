@@ -71,3 +71,13 @@ jobs:
               -f side=RIGHT \
               -f body="$BODY"
           done
+      - name: Fail on blockers
+        run: |
+          BLOCKER_COUNT=$(jq -rsc 'last | [.structured_output.findings[] | select(.severity == "blocker")] | length' findings.json)
+          WARN_COUNT=$(jq -rsc 'last | [.structured_output.findings[] | select(.severity == "warning")] | length' findings.json)
+          NIT_COUNT=$(jq -rsc 'last | [.structured_output.findings[] | select(.severity == "nit")] | length' findings.json)
+          echo "blockers: $BLOCKER_COUNT  warnings: $WARN_COUNT  nits: $NIT_COUNT"
+          if [ "$BLOCKER_COUNT" -gt 0 ]; then
+            echo "::error::$BLOCKER_COUNT blocker(s) found — merge gated"
+            exit 1
+          fi
