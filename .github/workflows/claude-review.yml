@@ -32,7 +32,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           COMMIT_SHA=$(git rev-parse HEAD)
-          jq -c '.findings[]' findings.json | while read finding; do
+          jq -c '.structured_output.findings[]' findings.json | while read finding; do
             FILE=$(echo "$finding" | jq -r .file)
             LINE=$(echo "$finding" | jq -r .line)
             SEV=$(echo "$finding" | jq -r .severity)
