@@ -36,7 +36,7 @@ jobs:
           gh api \
             repos/${{ github.repository }}/pulls/${{ github.event.number }}/comments \
             --paginate \
-            --jq '[.[] | {path: .path, line: .line, body: .body}]' \
+            --jq '[.[] | {path: .path, line: .line}]' \
             > existing.json
           echo "Existing comments: $(jq length existing.json)"
       - name: Post findings as inline comments
@@ -55,9 +55,8 @@ jobs:
             if [ -n "$SUG" ]; then
               BODY="$BODY"$'\n\n'"_Suggestion:_ $SUG"
             fi
-            KEY_BODY=$(echo "$BODY" | head -c 80)
-            DUP=$(jq --arg p "$FILE" --arg l "$LINE" --arg b "$KEY_BODY" \
-              '[.[] | select(.path == $p and (.line|tostring) == $l and (.body|.[0:80]) == $b)] | length' \
+            DUP=$(jq --arg p "$FILE" --argjson l "$LINE" \
+              '[.[] | select(.path == $p and .line == $l)] | length' \
               existing.json)
             if [ "$DUP" -gt 0 ]; then
               echo "skip duplicate: $FILE:$LINE"
